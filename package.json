@@ -1,0 +1,23 @@
+{
+  "name": "onefirst-signature_form",
+  "version": "1.0.0",
+  "private": true,
+  "description": "onefirst-signature_form",
+  "author": "Maxime Ealet",
+  "keywords": [
+    "gatsby"
+  ],
+  "scripts": {
+    "develop": "gatsby develop",
+    "start": "gatsby develop",
+    "build": "gatsby build",
+    "serve": "gatsby serve",
+    "clean": "gatsby clean"
+  },
+  "dependencies": {
+    "gatsby": "^5.2.0",
+    "gatsby-source-datocms": "^4.0.5",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  }
+}
