@@ -2,7 +2,7 @@
   "name": "onefirst-signature_form",
   "version": "1.0.0",
   "private": true,
-  "description": "onefirst-signature_form",
+  "description": "Générateur de signature - Onefirst",
   "author": "Maxime Ealet",
   "keywords": [
     "gatsby"
@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "gatsby": "^5.2.0",
-    "gatsby-source-datocms": "^4.0.5",
+    "gatsby-source-datocms": "^5.0.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   }
