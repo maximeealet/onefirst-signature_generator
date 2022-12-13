@@ -1,0 +1,196 @@
+@use "../../node_modules/bootstrap/scss/bootstrap.scss";
+
+@font-face {
+    font-family: 'Averta';
+    src: url('../fonts/averta-semibold.woff2') format('woff2'),
+        url('../fonts/averta-semibold.woff') format('woff');
+    font-weight: 600;
+    font-style: normal;
+}
+
+
+@font-face {
+    font-family: 'Averta';
+    src: url('../fonts/averta-thin.woff2') format('woff2'),
+        url('../fonts/averta-thin.woff') format('woff');
+    font-weight: 100;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Averta';
+    src: url('../fonts/averta-black.woff2') format('woff2'),
+        url('../fonts/averta-black.woff') format('woff');
+    font-weight: 900;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Averta';
+    src: url('../fonts/averta-bold.woff2') format('woff2'),
+        url('../fonts/averta-bold.woff') format('woff');
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Averta';
+    src: url('../fonts/averta-light.woff2') format('woff2'),
+        url('../fonts/averta-light.woff') format('woff');
+    font-weight: 300;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Averta';
+    src: url('../fonts/averta-extrabold.woff2') format('woff2'),
+        url('../fonts/averta-extrabold.woff') format('woff');
+    font-weight: 800;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Averta';
+    src: url('../fonts/averta-regular.woff2') format('woff2'),
+        url('../fonts/averta-regular.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+
+
+body {
+    font-size: 16px;
+    background-color: #fff;
+}
+
+#main_wrapper {
+    max-width: 1140px;
+    margin: 2rem auto;
+    padding: 0 32px;
+}
+
+.logo {
+    max-height:64px;
+    height:100%;
+    width:auto;
+}
+
+
+h1 {
+    margin: 3rem 0 4rem 0;
+    font-family: 'Averta', -apple-system, 'Roboto', "Helvetica Neue", sans-serif;
+    font-size: 2.5rem;
+    font-weight: bold;
+}
+
+#signature_generator {
+    margin-bottom: 3.5rem;
+    font-family: 'Averta', -apple-system, 'Roboto', "Helvetica Neue", sans-serif;
+}
+
+.form-group {
+    margin-bottom: 3rem;
+}
+
+.form-group label {
+    display: block;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    letter-spacing: 0.25rem;
+    color: #0055FB;
+}
+
+.form-group input,
+.form-group select {
+    height: 3rem;
+    border: 1px solid #dddddd;
+    border-radius: 4px;
+    box-shadow: none;
+    padding: 0.75rem;
+    font-size: 1.125rem;
+    width: 100%;
+}
+
+@media screen and (min-width: 799px) {
+
+    .form-group input,
+    .form-group select {
+        width: 50%;
+    }
+}
+
+.btn {
+    background-color: #000;
+    color: #fff;
+    font-size: 18px;
+    padding: 14px 24px;
+    transition: color .15s ease-out, background-color .15s ease-out, border-color .15s ease-out;
+
+    &:hover {
+            background-color: #0055FB;
+            color: #fff;
+        }
+}
+
+.required {
+    font-family: 'Averta', -apple-system, 'Roboto', "Helvetica Neue", sans-serif;
+}
+
+#generated_wrapper {
+    background-color: #f5f5f5;
+    padding: 56px 0;
+}
+
+#generated_inner {
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 0 32px;
+}
+
+.nav-tabs {
+    border: none;
+    font-family: 'Averta', -apple-system, 'Roboto', "Helvetica Neue", sans-serif;
+}
+
+.nav-tabs li a {
+    color: #000000;
+}
+
+.nav-tabs li.active a {
+    color: #0055FB;
+}
+
+.nav-tabs li.active:hover a {
+    color: #0055FB;
+}
+
+
+.tab-content {
+    padding: 3.5rem;
+    background-color: #fff;
+    border: 1px solid #dddddd;
+    overflow: hidden;
+}
+
+.tab-content label {
+    display: block;
+    text-transform: uppercase;
+    font-size: 1.125rem;
+    letter-spacing: 0.25rem;
+    color: #0055FB;
+    font-family: 'Averta', -apple-system, 'Roboto', "Helvetica Neue", sans-serif;
+}
+
+textarea {
+    display: block;
+    border: 1px solid #dddddd;
+    width: 100%;
+    min-height: 180px;
+    padding: 1rem;
+    font-family: 'Averta', -apple-system, 'Roboto', "Helvetica Neue", sans-serif;
+}
+
+.btn-copy {
+    margin-top: 3rem;
+}

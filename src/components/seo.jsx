@@ -1,4 +1,3 @@
-import React from "react"
 import { useSiteMetadata } from "../hooks/use-site-metadata"
 
 export const Seo = ({ title, pathname }) => {

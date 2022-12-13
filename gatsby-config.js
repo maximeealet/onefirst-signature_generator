@@ -6,7 +6,9 @@ module.exports = {
     title: `Générateur de signature - Onefirst`,
     siteUrl: `https://www.yourdomain.tld`,
   },
+  jsxRuntime: "automatic",
   plugins: [
+    `gatsby-plugin-sass`,
     {
       resolve: `gatsby-source-datocms`,
       options: {
