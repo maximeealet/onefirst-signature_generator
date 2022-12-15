@@ -1,7 +1,7 @@
-import {useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { graphql, useStaticQuery } from "gatsby";
 import { Seo } from "../components/seo";
-import { ImageToBase64 } from "../components/imageToBase64";
+import useClipboard from "react-use-clipboard";
 
 const IndexPage = () => {
   const dataSite = useStaticQuery(graphql`
@@ -15,6 +15,7 @@ const IndexPage = () => {
             width
           }
           name
+          position
         }
       }
       allDatoCmsAgence(sort: { position: ASC }) {
@@ -42,52 +43,140 @@ const IndexPage = () => {
         }
       }
     }
-  `);
+`);
 
-  const [userIdentity, setuserIdentity] = useState({
+
+
+const defaultIdentity = {
     firstName: "Jean-Michel",
-    lastName: "Ouanefeurst",
+    lastName:"Ouanefeurst",
     jobTitle: "Lead transformation digitale",
     mobilePhone: "+33 (0)6 83 62 08 72",
-  });
+}
 
-const firstRef = useRef(null);
-const lastRef = useRef(null);
-const jobRef = useRef(null);
-const mobilePhoneRef = useRef(null);
+let defaultbanner = dataSite.allDatoCmsBanner.nodes[0];
 
-const agencyRef = useRef(null);
+const [banners64, setBanners64] = useState("");
 
-  const [agency, setAgency] = useState(dataSite.allDatoCmsAgence.nodes[0]);
-  const [banner, setBanner] = useState(dataSite.allDatoCmsBanner.nodes[0]);
+function imageToBase64(imageURL) {
+  return fetch(imageURL)
+    .then((res) => res.blob())
+    .then((blob) => {
+      return new Promise((resolve, reject) => {
+        var reader = new FileReader();
+        reader.onload = () => {
+          resolve(`data:image/png;base64,${reader.result.split(",")[1]}`);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    })
+    .catch((error) => {
+      console.error("There was an error!", error);
+    });
+}
+
+useEffect(() => {
+  const fetchBanners = async () => {
+    const result = await Promise.allSettled(
+      dataSite.allDatoCmsBanner.nodes.map((node) =>
+        imageToBase64(node.image.url)
+      )
+    );
+    defaultbanner.image.base64 = result[0].value;
+    setBanners64(result);
+  };
+
+  fetchBanners().catch(console.error);
+}, [dataSite.allDatoCmsBanner.nodes, defaultbanner]);
 
 
-  const bannerChange = (event) => {
-    const bannerToShow = dataSite.allDatoCmsBanner.nodes.find((obj) => {
+const [firstName, setFirstName] = useState(defaultIdentity.firstName);
+const [lastName, setLastName] = useState(defaultIdentity.lastName);
+const [jobTitle, setJobTitle] = useState(defaultIdentity.jobTitle);
+
+const [mobileInput, setmobileInput] = useState("");
+
+const [userIdentity, setuserIdentity] = useState(defaultIdentity);
+
+const [agency, setAgency] = useState(dataSite.allDatoCmsAgence.nodes[0]);
+const [banner, setBanner] = useState(defaultbanner);
+
+const tabsRef = useRef(null);
+const topRef = useRef(null);
+const generatedSignatureRef = useRef(null);
+
+const [codeInput, setcodeInput] = useState("");
+
+const bannerChange = (event) => {
+const bannerToShow = dataSite.allDatoCmsBanner.nodes.find((obj) => {
+  return obj.name === event.target.value;
+});
+const bannerPosition = bannerToShow.position - 1;
+const base64ToShow = banners64[bannerPosition].value;
+bannerToShow.image.base64 = base64ToShow;
+  setBanner(bannerToShow);
+};
+
+  const agencyChange = (event) => {
+    const agencyToShow = dataSite.allDatoCmsAgence.nodes.find((obj) => {
       return obj.name === event.target.value;
     });
-     setBanner(bannerToShow);
+    setAgency(agencyToShow);
   };
 
   function handleGenerate(event) {
     event.preventDefault();
-    setuserIdentity({
-      firstName: firstRef.current.value,
-      lastName: lastRef.current.value,
-      jobTitle: jobRef.current.value,
-      mobilePhone: mobilePhoneRef.current.value,
-    });
-    const agencyToShow = dataSite.allDatoCmsAgence.nodes.find((obj) => {
-      return obj.name === agencyRef.current.value;
-    });
-    setAgency(agencyToShow);
+    let userPhone = "";
+    if (mobileInput.trim().length !== 0) {
+      userPhone = mobileInput;
+    } else {
+      userPhone = "";
+    }
+    if (event.target.checkValidity()) {
+      setuserIdentity({
+        firstName: firstName,
+        lastName: lastName,
+        jobTitle: jobTitle,
+        mobilePhone: userPhone,
+      });
+      tabsRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+   
   }
 
+  const [isCopied, setCopied] = useClipboard(
+    codeInput,
+    {
+      successDuration: 2000,
+    }
+  );
+
+  function resetForm() {
+      document.getElementById("signature_generator").reset();
+      setuserIdentity(defaultIdentity);
+      setAgency(dataSite.allDatoCmsAgence.nodes[0]);
+      setBanner(dataSite.allDatoCmsBanner.nodes[0]);
+      topRef.current?.scrollIntoView({ behavior: "smooth" });
+      setcodeInput("");
+  }
+
+  const generatedIdentity=useRef(false);
+
+  useEffect(() => {
+    if (generatedIdentity.current) {
+       setcodeInput(generatedSignatureRef.current.innerHTML);
+    } else {
+      generatedIdentity.current = true;
+    }
+     
+  }, [userIdentity,banner,agency]);
+  
 
 
   return (
     <>
-      <div id="main_wrapper">
+      <div id="main_wrapper" ref={topRef}>
         <img
           src={dataSite.datoCmsLogo.image.url}
           alt={dataSite.datoCmsLogo.image.alt}
@@ -104,8 +193,7 @@ const agencyRef = useRef(null);
               name="agence"
               id="agency"
               className="form-select"
-              ref={agencyRef}
-              // onChange={agencyChange}
+              onChange={agencyChange}
             >
               {dataSite.allDatoCmsAgence.nodes.map((agency) => {
                 return (
@@ -126,9 +214,11 @@ const agencyRef = useRef(null);
               id="firstname"
               required
               size="24"
-              placeholder={userIdentity.firstName}
+              placeholder={defaultIdentity.firstName}
               className="form-control"
-              ref={firstRef}
+              onChange={(event) => {
+                setLastName(event.target.value);
+              }}
             />
           </div>
           <div className="form-group">
@@ -141,9 +231,11 @@ const agencyRef = useRef(null);
               id="lastname"
               required
               size="24"
-              placeholder={userIdentity.lastName}
+              placeholder={defaultIdentity.lastName}
               className="form-control"
-              ref={lastRef}
+              onChange={(event) => {
+                setFirstName(event.target.value);
+              }}
             />
           </div>
           <div className="form-group">
@@ -156,23 +248,27 @@ const agencyRef = useRef(null);
               id="job"
               required
               size="24"
-              placeholder={userIdentity.jobTitle}
+              placeholder={defaultIdentity.jobTitle}
               className="form-control"
-              ref={jobRef}
+              onChange={(event) => {
+                setJobTitle(event.target.value);
+              }}
             />
           </div>
           <div className="form-group">
-            <label htmlFor="phone-mobile" className="form-label">
+            <label htmlFor="phoneMobile" className="form-label">
               Téléphone portable{" "}
             </label>
             <input
               type="text"
-              name="phone-mobile"
-              id="phone-mobile"
+              name="phoneMobile"
+              id="phoneMobile"
               size="24"
-              placeholder={userIdentity.mobilePhone}
+              placeholder={defaultIdentity.mobilePhone}
               className="form-control"
-              ref={mobilePhoneRef}
+              onChange={(event) => {
+                setmobileInput(event.target.value);
+              }}
             />
           </div>
           <div className="form-group">
@@ -192,13 +288,22 @@ const agencyRef = useRef(null);
               ))}
             </select>
           </div>
-          <button type="submit" className="btn">
-            Générer la signature
-          </button>
+          <div className="d-grid gap-2 d-md-block buttons">
+            <button type="submit" className="btn">
+              Générer la signature
+            </button>
+            <button
+              type="button"
+              className="btn btn-outline"
+              onClick={resetForm}
+            >
+              Reset
+            </button>
+          </div>
         </form>
         <span className="required">* Ces champs sont obligatoires</span>
       </div>
-      <div id="generated_wrapper">
+      <div id="generated_wrapper" ref={tabsRef}>
         <div id="generated_inner">
           <ul className="nav nav-tabs" id="myTab" role="presentation">
             <li className="nav-item" role="presentation">
@@ -237,7 +342,7 @@ const agencyRef = useRef(null);
               role="tabpanel"
               aria-labelledby="html-tab"
             >
-              <div id="generated_signature">
+              <div id="generated_signature" ref={generatedSignatureRef}>
                 <p
                   style={{
                     margin: 0,
@@ -255,18 +360,22 @@ const agencyRef = useRef(null);
                   <span>{userIdentity.jobTitle}</span>
                 </p>
                 <p style={{ margin: "12px 0 16px 0" }}>
-                  <span
-                    style={{
-                      fontSize: 14,
-                      fontWeight: 500,
-                      fontFamily:
-                        "Avenir Next, Lato, -apple-system, Roboto, Helvetica Neue, sans-serif",
-                      color: "black !important",
-                    }}
-                  >
-                    {userIdentity.mobilePhone}
-                  </span>
-                  <br />
+                  {userIdentity.mobilePhone.length !== 0 && (
+                    <>
+                      <span
+                        style={{
+                          fontSize: 14,
+                          fontWeight: 500,
+                          fontFamily:
+                            "Avenir Next, Lato, -apple-system, Roboto, Helvetica Neue, sans-serif",
+                          color: "black !important",
+                        }}
+                      >
+                        {userIdentity.mobilePhone}
+                      </span>
+                      <br />
+                    </>
+                  )}
                   <span
                     style={{
                       fontSize: 14,
@@ -280,13 +389,13 @@ const agencyRef = useRef(null);
                   </span>
                 </p>
                 <p id="generated_image">
-                  <ImageToBase64
-                    url={banner.image.url}
+                  <img
+                    src={banner.image.base64}
                     width={banner.image.width}
                     height={banner.image.height}
-                    alt={banner.image.alt}
-                    title={banner.image.title}
-                  />
+                    alt={banner.name}
+                    title={banner.name}
+                  ></img>
                 </p>
                 <div style={{ margin: "0px 0px 12px 0" }}>
                   <div
@@ -319,12 +428,12 @@ const agencyRef = useRef(null);
                     www.onefirstgroup.com
                   </a>
                 </div>
-                <p
+                <div
                   style={{ margin: 0 }}
                   dangerouslySetInnerHTML={{
                     __html: dataSite.datoCmsLegalsnotice.legals,
                   }}
-                ></p>
+                ></div>
               </div>
             </div>
             <div
@@ -333,7 +442,18 @@ const agencyRef = useRef(null);
               role="tabpanel"
               aria-labelledby="code-tab"
             >
-              ...
+              <label htmlFor="htmlcode">Code html</label>
+              <textarea
+                id="htmlcode"
+                name="htmlcode"
+                placeholder="Générez votre signature pour voir le code html"
+                defaultValue={codeInput}
+                readOnly
+              ></textarea>
+              <button className="btn btn-outline btn-copy" onClick={setCopied}>
+                {isCopied ? "Code copié !" : "Copier le code"}
+              </button>
+              {/* Was it copied? {isCopied ? "Yes! 👍" : "Nope! 👎"} */}
             </div>
           </div>
         </div>
@@ -345,40 +465,7 @@ const agencyRef = useRef(null);
         integrity="sha384-nvAa0+6Qg9clwYCGGPpDQLVpLNn0fRaROjHqs13t4Ggj3Ez50XnGQqc/r8MhnRDZ"
         crossOrigin="anonymous"
       ></script>
-      <script>
-        {/* new ClipboardJS('.btn-copy');
-
-        document.getElementById("signature_generator").addEventListener("submit", generate_signature);
-
-        function changeBanner() {
-                currentBanner = document.getElementById("banner").value;
-                document.getElementById('generated_image').innerHTML = image[currentBanner];
-        }
-
-        function generate_signature(event) {
-            event.preventDefault();
-            let name = document.getElementById("firstname").value + ' ' + document.getElementById("lastname").value;
-            let job = document.getElementById("job").value;
-            // let fixed_phone = document.getElementById('phone-fixed').value != '' ? document.getElementById('phone-fixed').value : 'F. ' + document.getElementById('phone-fixed').value : '';
-            let agence = document.getElementById("agency").value;
-            let adresse = new Object();
-            adresse.paris="47 rue Roque de Fillol<br>92800 Puteaux";
-            adresse.lyon="Newton Office Vaise<br>55ter avenue René CASSIN<br>69009 Lyon";
-            adresse.bordeaux="5 allées de Tourny<br>33 000 Bordeaux";
-            let telephone = new Object();
-            telephone.paris="+33 (0)1 83 62 08 72";
-            telephone.lyon="";
-            telephone.bordeaux="+33 (0)6 74 37 35 23";
-            let fixed_phone = agence != 'bordeaux' ? telephone[agence] : '';
-            let mobile_phone = document.getElementById('phone-mobile').value != '' ? document.getElementById('phone-mobile').value + '<br>' : '';
-            let banner = document.getElementById("banner").value;
-        
-            let ml = '<p style="margin: 0px; font-family: Avenir Next, Lato, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif; font-size: 10px; color: #9f9f9f !important;">Afin de contribuer au respect de&nbsp;l\'environnement, merci de n\'imprimer ce courriel que si&nbsp;nécessaire.<br>Ce message et toutes les pièces jointes sont établis à l’attention&nbsp;exclusive de ses destinataires. Ce message peut contenir des&nbsp;informations confidentielles, légalement ou&nbsp;conventionnellement protégées. Si vous recevez ce message&nbsp;par erreur et/ou si vous n’êtes pas le destinataire désigné de ce&nbsp;message, la lecture, la copie, la diffusion, la publication ou&nbsp;l’utilisation de ce message sont strictement interdites. Merci&nbsp;d’avertir immédiatement l’expéditeur et de détruire ce message&nbsp;(ainsi que toutes les copies) et les pièces jointes s’y rattachant.&nbsp;<br>Onefirst traite vos données à caractère personnel pour&nbsp;analyser votre demande et y faire suite, ainsi que pour la gestion&nbsp;de notre relation commerciale. Pour en savoir plus sur la gestion&nbsp;de vos données et vos droits, consultez la&nbsp;<a href="https://onefirstgroup.com/politique-de-confidentialite/" target="_blank" rel="noopener noreferrer" style="margin:0px; color:#9f9f9f; text-decoration:underline">Politique de confidentialité de Onefirst.</a></p>';
-            let signature = '<p style="font-size:14px; font-weight: 500; font-family:Avenir Next, Lato, -apple-system, Roboto, Helvetica Neue, sans-serif; color: black !important; margin:0"> <span style="font-weight: 600;">' + name + '</span><br>' + job + '</p><p style="font-size:14px; font-weight: 500; font-family:Avenir Next, Lato, -apple-system, Roboto, Helvetica Neue, sans-serif; color: black !important; margin:12px 0 0 0;">' + mobile_phone + fixed_phone + '</p><p style="margin:16px 0" id="generated_image" >' + image[banner] + '</p><p style="margin: 0px 0px 12px 0; font-size:14px; font-weight: 500; font-family:Avenir Next, Lato, -apple-system, Roboto, Helvetica Neue, sans-serif; color: black !important;">'+ adresse[agence] +'<br><a href="http://www.onefirstgroup.com" target="_blank" rel="noopener noreferrer" style="margin:0px; color:#0055FB;">www.onefirstgroup.com</a></p>' + ml;
-            document.getElementById('generated_signature').innerHTML = signature;
-            document.getElementById('htmlcode').value = signature;
-        } */}
-      </script>
+      <script>{/* new ClipboardJS('.btn-copy'); */}</script>
     </>
   );
 };
